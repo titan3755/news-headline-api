@@ -4,6 +4,7 @@ import (
 	"log"
 	"math/rand"
 	"time"
+	"strings"
 	"github.com/gin-gonic/gin"
 	"github.com/gocolly/colly"
 )
@@ -11,7 +12,7 @@ import (
 type Headline struct {
 	Id int `json:"id"`
 	Title string `json:"title"`
-	Sdesc string `json:"sdesc"`
+	Url string `json:"sdesc"`
 }
 
 func main() {
@@ -36,21 +37,23 @@ func webScraper(data *[]Headline) {
 	
 	webScraperLogic := func () {
 		c := colly.NewCollector()
-		c.OnHTML(".zox-s-title2", func (element *colly.HTMLElement) {
+		var temp []Headline
+		c.OnHTML(".media__link", func (element *colly.HTMLElement) {
 			headlineId := rand.Int()
-			headlineTitle := element.Text
-			headlineDesc := ""
+			headlineTitle := strings.Trim(element.Text, "\n ")
+			headlineUrl := element.Attr("href")
 			headline := Headline{
 				Id: headlineId,
 				Title: headlineTitle,
-				Sdesc: headlineDesc,
+				Url: headlineUrl,
 			}
-			*data = append(*data, headline)
+			temp = append(temp, headline)
+			*data = temp
 		})
-		c.OnScraped(func (r *colly.Response) {
+		c.OnScraped(func (_ *colly.Response) {
 			log.Println("Scraped data from website!")
 		})
-		c.Visit("https://boldtv.com/")
+		c.Visit("https://www.bbc.com/")
 	}
 	webScraperLogic()
 	for range time.NewTicker(time.Minute * 1).C { 
