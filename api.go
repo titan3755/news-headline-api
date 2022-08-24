@@ -12,7 +12,8 @@ import (
 type Headline struct {
 	Id int `json:"id"`
 	Title string `json:"title"`
-	Url string `json:"sdesc"`
+	SDesc string `json:"sdesc"`
+	Url string `json:"url"`
 }
 
 func main() {
@@ -38,13 +39,15 @@ func webScraper(data *[]Headline) {
 	webScraperLogic := func () {
 		c := colly.NewCollector()
 		var temp []Headline
-		c.OnHTML(".media__link", func (element *colly.HTMLElement) {
+		c.OnHTML(".media__content", func (element *colly.HTMLElement) {
 			headlineId := rand.Int()
-			headlineTitle := strings.Trim(element.Text, "\n ")
-			headlineUrl := element.Attr("href")
+			headlineTitle := strings.Trim(element.ChildText(".media__link"), "\n ")
+			headlineSDesc := strings.Trim(element.ChildText(".media__summary"), "\n ")
+			headlineUrl := element.ChildAttr(".media__link", "href")
 			headline := Headline{
 				Id: headlineId,
 				Title: headlineTitle,
+				SDesc: headlineSDesc,
 				Url: headlineUrl,
 			}
 			temp = append(temp, headline)
